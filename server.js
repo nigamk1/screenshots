@@ -1,7 +1,18 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const puppeteer = require('puppeteer');
+
+// Use puppeteer-core with chromium for serverless environments
+let puppeteer;
+let chromium;
+
+// Try to load chromium for serverless, fallback to regular puppeteer for local
+try {
+  chromium = require('@sparticuz/chromium');
+  puppeteer = require('puppeteer-core');
+} catch (err) {
+  puppeteer = require('puppeteer');
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -104,9 +115,19 @@ app.get('/screenshot', async (req, res) => {
     console.log(`Options: ${JSON.stringify({ viewportWidth, viewportHeight, ...screenshotOptions })}`);
 
     // Launch Puppeteer with optimized settings
-    browser = await puppeteer.launch({
-      headless: 'new',
-      args: [
+    const launchOptions = {
+      headless: chromium ? 'new' : true,
+      args: chromium ? [
+        ...chromium.args,
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process',
+        '--disable-gpu'
+      ] : [
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
@@ -117,7 +138,14 @@ app.get('/screenshot', async (req, res) => {
         '--disable-gpu'
       ],
       timeout: parseInt(process.env.DEFAULT_TIMEOUT) || 30000
-    });
+    };
+
+    // Add executablePath for serverless
+    if (chromium) {
+      launchOptions.executablePath = await chromium.executablePath();
+    }
+
+    browser = await puppeteer.launch(launchOptions);
 
     const page = await browser.newPage();
 
@@ -221,9 +249,19 @@ app.post('/screenshot/element', express.json(), async (req, res) => {
       screenshotOptions.quality = parseInt(quality) || 80;
     }
 
-    browser = await puppeteer.launch({
-      headless: 'new',
-      args: [
+    const launchOptions = {
+      headless: chromium ? 'new' : true,
+      args: chromium ? [
+        ...chromium.args,
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process',
+        '--disable-gpu'
+      ] : [
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
@@ -233,7 +271,13 @@ app.post('/screenshot/element', express.json(), async (req, res) => {
         '--single-process',
         '--disable-gpu'
       ]
-    });
+    };
+
+    if (chromium) {
+      launchOptions.executablePath = await chromium.executablePath();
+    }
+
+    browser = await puppeteer.launch(launchOptions);
 
     const page = await browser.newPage();
 
