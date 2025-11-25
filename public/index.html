@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Screenshot API - Test Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .form-section {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .result-section {
+            padding: 30px;
+            border-top: 2px solid #f0f0f0;
+            display: none;
+        }
+
+        .result-section.show {
+            display: block;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .result-header h2 {
+            color: #333;
+        }
+
+        .metadata {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .metadata p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .metadata strong {
+            color: #333;
+        }
+
+        .screenshot-preview {
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            overflow: hidden;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .screenshot-preview img {
+            width: 100%;
+            display: block;
+        }
+
+        .error {
+            background: #fee;
+            border: 2px solid #fcc;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .success {
+            background: #efe;
+            border: 2px solid #cfc;
+            color: #3c3;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .copy-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .copy-btn:hover {
+            background: #218838;
+        }
+
+        .small-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📸 Screenshot API</h1>
+            <p>Test the API and generate website screenshots instantly</p>
+        </div>
+
+        <form id="screenshotForm" class="form-section">
+            <div class="form-group">
+                <label for="url">Website URL *</label>
+                <input type="text" id="url" name="url" placeholder="https://example.com" required>
+                <p class="small-text">Must include http:// or https://</p>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label for="width">Width (px)</label>
+                    <input type="number" id="width" name="width" value="1920" min="320" max="3840">
+                </div>
+                <div class="form-group">
+                    <label for="height">Height (px)</label>
+                    <input type="number" id="height" name="height" value="1080" min="240" max="2160">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label for="format">Format</label>
+                    <select id="format" name="format">
+                        <option value="png">PNG</option>
+                        <option value="jpeg">JPEG</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="quality">Quality (JPEG only)</label>
+                    <input type="number" id="quality" name="quality" value="80" min="1" max="100">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="delay">Delay (ms)</label>
+                <input type="number" id="delay" name="delay" value="0" min="0" max="10000">
+                <p class="small-text">Wait time before capturing (useful for JavaScript-heavy pages)</p>
+            </div>
+
+            <div class="form-group">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="fullPage" name="fullPage">
+                    <label for="fullPage" style="margin-bottom: 0;">Capture Full Page</label>
+                </div>
+            </div>
+
+            <button type="submit" class="btn" id="submitBtn">Generate Screenshot</button>
+        </form>
+
+        <div id="loadingSection" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>Generating screenshot... Please wait.</p>
+        </div>
+
+        <div id="resultSection" class="result-section">
+            <div class="result-header">
+                <h2>Result</h2>
+                <button type="button" class="copy-btn" id="copyBtn">Copy Base64</button>
+            </div>
+
+            <div class="metadata" id="metadata"></div>
+
+            <div class="screenshot-preview">
+                <img id="screenshotImage" alt="Screenshot">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('screenshotForm');
+        const loadingSection = document.getElementById('loadingSection');
+        const resultSection = document.getElementById('resultSection');
+        const submitBtn = document.getElementById('submitBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        
+        let currentBase64 = '';
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Get form values
+            const formData = new FormData(form);
+            const params = new URLSearchParams();
+            
+            params.append('url', formData.get('url'));
+            params.append('width', formData.get('width'));
+            params.append('height', formData.get('height'));
+            params.append('format', formData.get('format'));
+            params.append('quality', formData.get('quality'));
+            params.append('delay', formData.get('delay'));
+            params.append('fullPage', formData.get('fullPage') ? 'true' : 'false');
+
+            // Show loading
+            resultSection.classList.remove('show');
+            loadingSection.style.display = 'block';
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch(`/screenshot?${params.toString()}`);
+                const data = await response.json();
+
+                loadingSection.style.display = 'none';
+                
+                if (data.success) {
+                    currentBase64 = data.data.image;
+                    
+                    // Display metadata
+                    document.getElementById('metadata').innerHTML = `
+                        <p><strong>Format:</strong> ${data.data.format.toUpperCase()}</p>
+                        <p><strong>Size:</strong> ${(data.data.size / 1024).toFixed(2)} KB</p>
+                        <p><strong>Dimensions:</strong> ${data.data.dimensions.width}x${data.data.dimensions.height}</p>
+                        <p><strong>Full Page:</strong> ${data.data.dimensions.fullPage ? 'Yes' : 'No'}</p>
+                        <p><strong>Processing Time:</strong> ${data.metadata.processingTime}</p>
+                        <p><strong>URL:</strong> ${data.metadata.url}</p>
+                    `;
+                    
+                    // Display image
+                    document.getElementById('screenshotImage').src = `data:image/${data.data.format};base64,${data.data.image}`;
+                    
+                    resultSection.classList.add('show');
+                    
+                    // Show success message
+                    showMessage('Screenshot generated successfully!', 'success');
+                } else {
+                    showMessage(`Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                loadingSection.style.display = 'none';
+                showMessage(`Request failed: ${error.message}`, 'error');
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+
+        copyBtn.addEventListener('click', () => {
+            navigator.clipboard.writeText(currentBase64).then(() => {
+                copyBtn.textContent = '✓ Copied!';
+                setTimeout(() => {
+                    copyBtn.textContent = 'Copy Base64';
+                }, 2000);
+            });
+        });
+
+        function showMessage(message, type) {
+            const existingMessage = document.querySelector('.error, .success');
+            if (existingMessage) existingMessage.remove();
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type;
+            messageDiv.textContent = message;
+            form.appendChild(messageDiv);
+
+            setTimeout(() => messageDiv.remove(), 5000);
+        }
+    </script>
+</body>
+</html>

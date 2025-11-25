@@ -1,0 +1,22 @@
+version: 2
+services:
+  - type: web
+    name: screenshot-api
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DEFAULT_VIEWPORT_WIDTH
+        value: 1920
+      - key: DEFAULT_VIEWPORT_HEIGHT
+        value: 1080
+      - key: DEFAULT_TIMEOUT
+        value: 30000
+      - key: MAX_SCREENSHOT_WIDTH
+        value: 3840
+      - key: MAX_SCREENSHOT_HEIGHT
+        value: 2160
+    healthCheckPath: /health
+    autoDeploy: true
